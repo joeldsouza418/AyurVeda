@@ -16,6 +16,9 @@ export default function FarmerUpload() {
   const [showCamera, setShowCamera] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [distributors, setDistributors] = useState([]);
+  const [selectedDistributor, setSelectedDistributor] = useState("");
+  const [loadingDistributors, setLoadingDistributors] = useState(false);
   const fileInputRef = useRef(null);
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
@@ -38,6 +41,24 @@ export default function FarmerUpload() {
         () => setError("Please enable location services to continue.")
       );
     }
+    const fetchDistributors = async () => {
+      try {
+        setLoadingDistributors(true);
+        const config = {
+          headers: {
+            Authorization: userInfo?.token ? `Bearer ${userInfo.token}` : undefined,
+          },
+        };
+        const { data } = await axios.get("/api/users/distributors", config);
+        setDistributors(data.data || []);
+      } catch (err) {
+        // Keep this non-blocking for batch creation
+      } finally {
+        setLoadingDistributors(false);
+      }
+    };
+
+    fetchDistributors();
   }, [navigate]);
 
   const base64ToBlob = (base64, mimeType) => {
@@ -90,6 +111,7 @@ export default function FarmerUpload() {
       const formData = new FormData();
       formData.append("species", species);
       formData.append("image", imageFile);
+
       formData.append(
         "coordinates",
         JSON.stringify([coordinates.longitude, coordinates.latitude])
@@ -103,10 +125,29 @@ export default function FarmerUpload() {
       };
 
       const { data } = await axios.post("/api/batches", formData, config);
+
+      if (selectedDistributor) {
+        try {
+          await axios.put(
+            `/api/batches/${data.data._id}/assign`,
+            { distributorId: selectedDistributor },
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: userInfo?.token ? `Bearer ${userInfo.token}` : undefined,
+              },
+            }
+          );
+        } catch (assignError) {
+          // If assignment fails, we still let the batch be created and navigated to
+        }
+      }
+
       setSpecies("");
       setHarvestDate("");
       setImageFile(null);
       setImagePreview(null);
+      setSelectedDistributor("");
       navigate(`/batch/${data.data.batchId}`);
     } catch (err) {
       const message = err.response?.data?.message || "Failed to create batch";
@@ -190,6 +231,26 @@ export default function FarmerUpload() {
               onChange={(e) => setHarvestDate(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border text-gray-700 focus:ring-2 focus:ring-green-400 focus:outline-none"
             />
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Assign to Distributor (optional)
+              </label>
+              <select
+                value={selectedDistributor}
+                onChange={(e) => setSelectedDistributor(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border bg-white focus:ring-2 focus:ring-green-400 focus:outline-none"
+              >
+                <option value="">
+                  {loadingDistributors ? "Loading distributors..." : "Select a distributor"}
+                </option>
+                {distributors.map((dist) => (
+                  <option key={dist._id} value={dist._id}>
+                    {dist.name} {dist.organizationName ? `- ${dist.organizationName}` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <button
               type="submit"

@@ -6,6 +6,7 @@ import {
     addBatchEvent,
     getBatchesByOwner,
     getBatchesByFarmer,
+    getUnassignedBatches,
     assignToDistributor,
     transferBatch
 } from '../controllers/batchController.js';
@@ -30,5 +31,6 @@ router.put('/:id/transfer', protect, supplyChainParticipant, transferBatch);
 // User-specific batch routes
 router.get('/my/owned', protect, getBatchesByOwner);
 router.get('/my/farmed', protect, farmer, getBatchesByFarmer);
+router.get('/unassigned', protect, distributor, getUnassignedBatches);
 
 export default router;

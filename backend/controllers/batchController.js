@@ -201,6 +201,15 @@ const getBatchesByFarmer = asyncHandler(async (req, res) => {
     }));
 });
 
+// Get unassigned batches (DISTRIBUTOR only)
+const getUnassignedBatches = asyncHandler(async (req, res) => {
+    const batches = await HerbBatch.find({ currentStatus: 'HARVESTED' })
+        .populate('farmer', 'name email organizationName')
+        .sort({ createdAt: -1 });
+    
+    res.status(200).json(formatSuccess(batches || [], 200));
+});
+
 // Assign a batch to a distributor (FARMER only)
 const assignToDistributor = asyncHandler(async (req, res) => {
     const { distributorId } = req.body;
@@ -282,6 +291,7 @@ export {
     addBatchEvent,
     getBatchesByOwner,
     getBatchesByFarmer,
+    getUnassignedBatches,
     assignToDistributor,
     transferBatch
 };

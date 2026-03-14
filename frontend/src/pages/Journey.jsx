@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
 const STAGES = [
@@ -165,7 +166,7 @@ const Journey = () => {
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Join the Transparent Supply Chain</h2>
           <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
             {['Farmer','Collector','Lab Tester','Distributor','Retailer','Consumer'].map((role) => (
-              <button key={role} className="px-3 py-2 rounded-xl border text-sm hover:bg-green-50">{role}</button>
+              <Link key={role} to="/login" className="px-3 py-2 rounded-xl border text-sm hover:bg-green-50 text-center block">{role}</Link>
             ))}
           </div>
         </div>

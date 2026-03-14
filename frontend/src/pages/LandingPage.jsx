@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import video1 from '/video1.mp4';
 const LandingPage = () => {
@@ -34,8 +35,8 @@ const LandingPage = () => {
               </h1>
               <p className="text-lg text-gray-600 max-w-lg">Grow authenticity with expert verification, GPS-backed provenance, and QR-powered traceability across the entire supply chain.</p>
               <div className="mt-6 flex gap-3">
-                <a className="border-0 rounded-full px-4 py-2 font-bold cursor-pointer inline-flex items-center gap-2 bg-green-700 text-white transition-all duration-300 hover:bg-green-800" href="/farmer/login/">Start as Farmer</a>
-                <a className="border-0 rounded-full px-4 py-2 font-bold cursor-pointer inline-flex items-center gap-2 bg-transparent text-green-800 border-2 border-green-100 transition-all duration-300 hover:bg-green-100" href="/upload/">Upload a Herb</a>
+                <Link to="/login" className="border-0 rounded-full px-4 py-2 font-bold cursor-pointer inline-flex items-center gap-2 bg-green-700 text-white transition-all duration-300 hover:bg-green-800">Start as Farmer</Link>
+                <Link to="/farmer/upload" className="border-0 rounded-full px-4 py-2 font-bold cursor-pointer inline-flex items-center gap-2 bg-transparent text-green-800 border-2 border-green-100 transition-all duration-300 hover:bg-green-100">Upload a Herb</Link>
               </div>
               </div>
 
@@ -85,30 +86,30 @@ const LandingPage = () => {
             <h2 className="text-center text-green-800 mb-2 text-3xl font-extrabold">Choose Your Role</h2>
             <p className="text-center text-gray-600 text-lg">Select your role to access the appropriate dashboard</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-              <a href="/farmer/login/" className="bg-gradient-to-br from-[#4a7c59] to-[#5a8c69] text-white p-6 rounded-2xl text-center transition-transform duration-300 hover:translate-y-[-4px] hover:shadow-xl">
+              <Link to="/login" className="bg-gradient-to-br from-[#4a7c59] to-[#5a8c69] text-white p-6 rounded-2xl text-center transition-transform duration-300 hover:translate-y-[-4px] hover:shadow-xl">
                 <div className="text-4xl mb-2">🌱</div>
                 <h3 className="text-xl mb-1">Farmer</h3>
                 <p className="opacity-90 text-sm mb-4">Upload herb photos, generate QR codes, and track harvests</p>
                 <div className="border-0 rounded-full px-4 py-2 font-bold cursor-pointer inline-flex items-center gap-2 bg-white text-green-800 shadow-md transition-all duration-300 hover:shadow-lg">Login as Farmer</div>
-              </a>
-              <a href="/distributor/login/" className="bg-gradient-to-br from-[#4a7c59] to-[#5a8c69] text-white p-6 rounded-2xl text-center transition-transform duration-300 hover:translate-y-[-4px] hover:shadow-xl">
+              </Link>
+              <Link to="/login" className="bg-gradient-to-br from-[#4a7c59] to-[#5a8c69] text-white p-6 rounded-2xl text-center transition-transform duration-300 hover:translate-y-[-4px] hover:shadow-xl">
                 <div className="text-4xl mb-2">🚚</div>
                 <h3 className="text-xl mb-1">Distributor</h3>
                 <p className="opacity-90 text-sm mb-4">Manage logistics and verify transfer events</p>
                 <div className="border-0 rounded-full px-4 py-2 font-bold cursor-pointer inline-flex items-center gap-2 bg-white text-green-800 shadow-md transition-all duration-300 hover:shadow-lg">Login as Distributor</div>
-              </a>
-              <a href="/lab/login/" className="bg-gradient-to-br from-[#4a7c59] to-[#5a8c69] text-white p-6 rounded-2xl text-center transition-transform duration-300 hover:translate-y-[-4px] hover:shadow-xl">
+              </Link>
+              <Link to="/login" className="bg-gradient-to-br from-[#4a7c59] to-[#5a8c69] text-white p-6 rounded-2xl text-center transition-transform duration-300 hover:translate-y-[-4px] hover:shadow-xl">
                 <div className="text-4xl mb-2">🧪</div>
                 <h3 className="text-xl mb-1">Lab Tester</h3>
                 <p className="opacity-90 text-sm mb-4">Record test results and certifications</p>
                 <div className="border-0 rounded-full px-4 py-2 font-bold cursor-pointer inline-flex items-center gap-2 bg-white text-green-800 shadow-md transition-all duration-300 hover:shadow-lg">Login as Lab Tester</div>
-              </a>
-              <a href="/retailer/login/" className="bg-gradient-to-br from-[#4a7c59] to-[#5a8c69] text-white p-6 rounded-2xl text-center transition-transform duration-300 hover:translate-y-[-4px] hover:shadow-xl">
+              </Link>
+              <Link to="/login" className="bg-gradient-to-br from-[#4a7c59] to-[#5a8c69] text-white p-6 rounded-2xl text-center transition-transform duration-300 hover:translate-y-[-4px] hover:shadow-xl">
                 <div className="text-4xl mb-2">🏪</div>
                 <h3 className="text-xl mb-1">Retailer</h3>
                 <p className="opacity-90 text-sm mb-4">Verify authenticity and manage inventory</p>
                 <div className="border-0 rounded-full px-4 py-2 font-bold cursor-pointer inline-flex items-center gap-2 bg-white text-green-800 shadow-md transition-all duration-300 hover:shadow-lg">Login as Retailer</div>
-              </a>
+              </Link>
             </div>
           </div>
         </section>

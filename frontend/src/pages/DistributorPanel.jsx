@@ -6,7 +6,9 @@ import Navbar from '../components/Navbar';
 
 const DistributorPanel = () => {
   const [batches, setBatches] = useState([]);
+  const [unassignedBatches, setUnassignedBatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingUnassigned, setLoadingUnassigned] = useState(true);
   const [error, setError] = useState('');
   const [userInfo, setUserInfo] = useState(null);
   const [trackingBatch, setTrackingBatch] = useState(null);
@@ -35,7 +37,7 @@ const DistributorPanel = () => {
     }
     setUserInfo(storedUserInfo);
 
-    // Fetch batches owned by the distributor
+    // Fetch batches owned by the distributor and unassigned batches
     const fetchBatches = async () => {
       try {
         const config = {
@@ -57,7 +59,24 @@ const DistributorPanel = () => {
       }
     };
 
+    const fetchUnassignedBatches = async () => {
+      try {
+        const config = {
+          headers: {
+            Authorization: `Bearer ${storedUserInfo.token}`,
+          },
+        };
+        const response = await axios.get('/api/batches/unassigned', config);
+        setUnassignedBatches(response.data.data || []);
+      } catch (error) {
+        console.error('Failed to fetch unassigned batches:', error);
+      } finally {
+        setLoadingUnassigned(false);
+      }
+    };
+
     fetchBatches();
+    fetchUnassignedBatches();
 
     // Cleanup tracking interval on unmount
     return () => {
@@ -284,6 +303,26 @@ const DistributorPanel = () => {
     setShowCamera(true);
   };
 
+  const handleClaimBatch = async (batch) => {
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      };
+      await axios.put(`/api/batches/${batch._id}/assign`, { distributorId: userInfo._id }, config);
+      // Refresh both lists
+      const ownedResponse = await axios.get('/api/batches/my/owned', config);
+      setBatches(ownedResponse.data.data);
+      const unassignedResponse = await axios.get('/api/batches/unassigned', config);
+      setUnassignedBatches(unassignedResponse.data.data || []);
+      setTransferSuccess(`Successfully claimed ${batch.species}`);
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to claim batch');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-green-50">
       <Navbar userInfo={userInfo} />
@@ -409,6 +448,53 @@ const DistributorPanel = () => {
             captureLocation={true}
           />
         )}
+
+        {/* Available Shipments Section */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Available Shipments</h2>
+          {loadingUnassigned ? (
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div>
+            </div>
+          ) : unassignedBatches.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-md p-6 text-center">
+              <p className="text-gray-600">No unassigned shipments available.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {unassignedBatches.map((batch) => (
+                <div key={batch._id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-800">{batch.species}</h3>
+                        <p className="text-sm text-gray-600">Batch ID: {batch.batchId}</p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Farmer: {batch.farmer?.name || 'Unknown'}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Org: {batch.farmer?.organizationName || 'N/A'}
+                        </p>
+                      </div>
+                      <Link
+                        to={`/batch/${batch.batchId}`}
+                        className="text-green-600 hover:text-green-800 text-sm font-medium"
+                      >
+                        View Details
+                      </Link>
+                    </div>
+                    <button
+                      onClick={() => handleClaimBatch(batch)}
+                      className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
+                    >
+                      Claim Shipment
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {loading ? (
           <div className="flex justify-center">
