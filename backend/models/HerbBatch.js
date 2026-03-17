@@ -53,7 +53,9 @@ const herbBatchSchema = new mongoose.Schema({
     },
     currentOwner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     pendingOwner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    transferOtp: { type: String }
+    transferOtp: { type: String },
+    transferOtpExpiry: { type: Date },
+    otpAttempts: { type: Number, default: 0 }
 }, { timestamps: true });
 
 
