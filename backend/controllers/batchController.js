@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import HerbBatch from '../models/HerbBatch.js';
 import generateQRCode from '../utils/qrCodeGenerator.js';
 import { formatSuccess } from '../utils/responseFormatter.js';
+import { generateOTP, getOTPExpiry, isValidOTPFormat, isOTPExpired } from '../utils/otpGenerator.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -235,9 +236,12 @@ const assignToDistributor = asyncHandler(async (req, res) => {
 
         batch.pendingOwner = distributorId;
         // Generate a 6-digit OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otp = generateOTP();
         batch.transferOtp = otp;
-        // Do not update the status yet, it's pending transfer
+        // Set OTP expiry to 15 minutes from now
+        batch.transferOtpExpiry = getOTPExpiry();
+        // Reset OTP attempts
+        batch.otpAttempts = 0;
         
         const updatedBatch = await batch.save();
         
@@ -280,8 +284,12 @@ const transferBatch = asyncHandler(async (req, res) => {
 
         batch.pendingOwner = recipientId;
         // Generate a 6-digit OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otp = generateOTP();
         batch.transferOtp = otp;
+        // Set OTP expiry to 15 minutes from now
+        batch.transferOtpExpiry = getOTPExpiry();
+        // Reset OTP attempts
+        batch.otpAttempts = 0;
 
         const updatedBatch = await batch.save();
         res.json(formatSuccess({ ...updatedBatch.toObject(), otp: otp }));
@@ -294,6 +302,13 @@ const transferBatch = asyncHandler(async (req, res) => {
 // Accept a batch transfer (Receiver only)
 const acceptTransfer = asyncHandler(async (req, res) => {
     const { otp } = req.body;
+    
+    // Validate OTP format
+    if (!isValidOTPFormat(otp)) {
+        res.status(400);
+        throw new Error('OTP must be a 6-digit number');
+    }
+    
     const batch = await HerbBatch.findById(req.params.id);
 
     if (batch) {
@@ -303,16 +318,55 @@ const acceptTransfer = asyncHandler(async (req, res) => {
             throw new Error('Not authorized to accept this transfer');
         }
 
-        // Verify OTP
-        if (batch.transferOtp !== otp) {
+        // Check if OTP exists
+        if (!batch.transferOtp) {
             res.status(400);
-            throw new Error('Invalid OTP');
+            throw new Error('No pending transfer found');
         }
 
-        // Accept the transfer
+        // Check if OTP has expired
+        if (isOTPExpired(batch.transferOtpExpiry)) {
+            // Clear expired OTP
+            batch.transferOtp = undefined;
+            batch.transferOtpExpiry = undefined;
+            batch.pendingOwner = undefined;
+            batch.otpAttempts = 0;
+            await batch.save();
+            
+            res.status(400);
+            throw new Error('OTP has expired. Please request a new transfer');
+        }
+
+        // Check for too many failed attempts
+        if (batch.otpAttempts >= 5) {
+            // Lock the transfer after 5 failed attempts
+            batch.transferOtp = undefined;
+            batch.transferOtpExpiry = undefined;
+            batch.pendingOwner = undefined;
+            batch.otpAttempts = 0;
+            await batch.save();
+            
+            res.status(429);
+            throw new Error('Too many failed attempts. Transfer has been cancelled. Please request a new transfer');
+        }
+
+        // Verify OTP
+        if (batch.transferOtp !== otp) {
+            // Increment failed attempts
+            batch.otpAttempts = (batch.otpAttempts || 0) + 1;
+            await batch.save();
+            
+            const remainingAttempts = 5 - batch.otpAttempts;
+            res.status(400);
+            throw new Error(`Invalid OTP. ${remainingAttempts} attempt(s) remaining`);
+        }
+
+        // Accept the transfer - OTP is correct
         batch.currentOwner = batch.pendingOwner;
         batch.pendingOwner = undefined;
         batch.transferOtp = undefined;
+        batch.transferOtpExpiry = undefined;
+        batch.otpAttempts = 0;
 
         // Update status based on recipient role
         if (req.user.role === 'DISTRIBUTOR') {

@@ -10,9 +10,9 @@ const LandingPage = () => {
     <div className=" min-h-screen font-sans text-[#0f1720] font-bold">
       <Navbar />
       <main>
-        {/* Hero section with 3D Map above and content below */}
+        {/* Hero section with Video above and content below */}
         <section className="relative pb-10 overflow-hidden">
-          {/* Full-bleed 3D Map */}
+          {/* Full-bleed Video */}
           <div className="w-full h-[40vh] md:h-[60vh]">
             <MapHero onAnimationComplete={() => setShowButtons(true)} />
           </div>
@@ -41,7 +41,7 @@ const LandingPage = () => {
               </div>
 
               {/* Mockup phone display */}
-              <div className="relative grid grid-cols-2 gap-4">
+              <div className="relative grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="bg-white rounded-[34px] p-4 shadow-xl border border-gray-100 aspect-[9/16] flex flex-col">
                 <div className="h-2.5 mb-2.5"></div>
                 <div className="flex-1 rounded-2xl bg-gradient-to-b from-white to-green-50 border border-gray-100 p-4 overflow-hidden relative">
@@ -69,6 +69,22 @@ const LandingPage = () => {
                     <div>Trace Verified</div>
                     <div className="h-1.5 bg-green-50 rounded-full overflow-hidden w-2/3">
                       <i className="block w-[60%] h-full bg-gradient-to-r from-green-400 to-green-600"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-[34px] p-4 shadow-xl border border-gray-100 aspect-[9/16] flex flex-col">
+                <div className="h-2.5 mb-2.5"></div>
+                <div className="flex-1 rounded-2xl bg-gradient-to-b from-white to-green-50 border border-gray-100 p-4 overflow-hidden relative">
+                  <div className="font-bold text-green-800 mb-2">Live Tracing</div>
+                  <div className="h-[44%] mt-2.5 rounded-lg border border-green-200 bg-white flex items-center justify-center">
+                    <div className="text-5xl">📍</div>
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3 bg-white border border-green-50 rounded-xl p-3 flex justify-between items-center shadow-md">
+                    <div>Location Active</div>
+                    <div className="h-1.5 bg-green-50 rounded-full overflow-hidden w-2/3">
+                      <i className="block w-[80%] h-full bg-gradient-to-r from-green-400 to-green-600"></i>
                     </div>
                   </div>
                 </div>
