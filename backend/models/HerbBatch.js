@@ -40,9 +40,20 @@ const herbBatchSchema = new mongoose.Schema({
             type: { type: String, enum: ['Point'], default: 'Point' },
             coordinates: { type: [Number], default: [0, 0] }
         },
+        history: {
+            type: [
+                {
+                    type: { type: String, enum: ['Point'], default: 'Point' },
+                    coordinates: { type: [Number] }
+                }
+            ],
+            default: []
+        },
         lastUpdated: { type: Date }
     },
-    currentOwner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    currentOwner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    pendingOwner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    transferOtp: { type: String }
 }, { timestamps: true });
 
 

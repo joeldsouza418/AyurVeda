@@ -1,25 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import video1 from '/video1.mp4';
+import MapHero from '../components/MapHero';
+
 const LandingPage = () => {
+  const [showButtons, setShowButtons] = useState(false);
+
   return (
     <div className=" min-h-screen font-sans text-[#0f1720] font-bold">
       <Navbar />
       <main>
-        {/* Hero section with standalone video above and content below */}
-        <section className="relative  pb-10 overflow-hidden">
-          {/* Full-bleed video */}
-          <div className="w-full">
-            <video
-              className="w-full h-[40vh] md:h-[60vh] object-cover"
-              autoPlay
-              loop
-              muted
-              playsInline
-            >
-              <source src={video1} type="video/mp4" />
-            </video>
+        {/* Hero section with 3D Map above and content below */}
+        <section className="relative pb-10 overflow-hidden">
+          {/* Full-bleed 3D Map */}
+          <div className="w-full h-[40vh] md:h-[60vh]">
+            <MapHero onAnimationComplete={() => setShowButtons(true)} />
           </div>
 
           {/* Content under the video, constrained */}
@@ -33,10 +28,15 @@ const LandingPage = () => {
               <h1 className="text-4xl sm:text-5xl lg:text-7xl leading-tight tracking-tight text-[#0f1720] mt-4 mb-3 font-extrabold drop-shadow-md">
                 Making Herbal Growth Simple & Trustworthy
               </h1>
-              <p className="text-lg text-gray-600 max-w-lg">Grow authenticity with expert verification, GPS-backed provenance, and QR-powered traceability across the entire supply chain.</p>
-              <div className="mt-6 flex gap-3">
-                <Link to="/login" className="border-0 rounded-full px-4 py-2 font-bold cursor-pointer inline-flex items-center gap-2 bg-green-700 text-white transition-all duration-300 hover:bg-green-800">Start as Farmer</Link>
-                <Link to="/farmer/upload" className="border-0 rounded-full px-4 py-2 font-bold cursor-pointer inline-flex items-center gap-2 bg-transparent text-green-800 border-2 border-green-100 transition-all duration-300 hover:bg-green-100">Upload a Herb</Link>
+             <p className="text-lg text-gray-600 max-w-lg">Grow authenticity with expert verification, GPS-backed provenance, and QR-powered traceability across the entire supply chain.</p>
+              
+              <div className={`mt-6 flex gap-3 transition-opacity duration-1000 ${showButtons ? 'opacity-100' : 'opacity-0'}`}>
+                {showButtons && (
+                  <>
+                    <Link to="/login" className="border-0 rounded-full px-4 py-2 font-bold cursor-pointer inline-flex items-center gap-2 bg-green-700 text-white transition-all duration-300 hover:bg-green-800">Start as Farmer</Link>
+                    <Link to="/farmer/upload" className="border-0 rounded-full px-4 py-2 font-bold cursor-pointer inline-flex items-center gap-2 bg-transparent text-green-800 border-2 border-green-100 transition-all duration-300 hover:bg-green-100">Upload a Herb</Link>
+                  </>
+                )}
               </div>
               </div>
 

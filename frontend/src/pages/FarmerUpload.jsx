@@ -128,7 +128,7 @@ export default function FarmerUpload() {
 
       if (selectedDistributor) {
         try {
-          await axios.put(
+          const assignResponse = await axios.put(
             `/api/batches/${data.data._id}/assign`,
             { distributorId: selectedDistributor },
             {
@@ -138,7 +138,12 @@ export default function FarmerUpload() {
               },
             }
           );
+          
+          if (assignResponse.data.data.otp) {
+            window.alert(`IMPORTANT: Batch assigned to distributor successfully. Please share this OTP with the distributor to complete the handover: ${assignResponse.data.data.otp}`);
+          }
         } catch (assignError) {
+          console.error(assignError);
           // If assignment fails, we still let the batch be created and navigated to
         }
       }

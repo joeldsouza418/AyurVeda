@@ -173,9 +173,15 @@ const addBatchEvent = asyncHandler(async (req, res) => {
 
 // Get batches owned by the current user (DISTRIBUTOR, LAB, RETAILER)
 const getBatchesByOwner = asyncHandler(async (req, res) => {
-    const batches = await HerbBatch.find({ currentOwner: req.user._id })
+    const batches = await HerbBatch.find({ 
+        $or: [
+            { currentOwner: req.user._id },
+            { pendingOwner: req.user._id }
+        ]
+    })
         .populate('farmer', 'name')
         .populate('currentOwner', 'name')
+        .populate('pendingOwner', 'name')
         .sort({ createdAt: -1 });
     
     res.status(200).json(formatSuccess(batches || [], 200));
@@ -227,11 +233,16 @@ const assignToDistributor = asyncHandler(async (req, res) => {
             throw new Error('Distributor not found');
         }
 
-        batch.currentOwner = distributorId;
-        batch.currentStatus = 'IN_TRANSIT_TO_LAB';
+        batch.pendingOwner = distributorId;
+        // Generate a 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        batch.transferOtp = otp;
+        // Do not update the status yet, it's pending transfer
         
         const updatedBatch = await batch.save();
-        res.json(formatSuccess(updatedBatch));
+        
+        // Return OTP so the farmer can see it and share it with distributor
+        res.json(formatSuccess({ ...updatedBatch.toObject(), otp: otp }));
     } else {
         res.status(404);
         throw new Error('Batch not found');
@@ -267,12 +278,49 @@ const transferBatch = asyncHandler(async (req, res) => {
             throw new Error(`Cannot transfer from ${req.user.role} to ${recipient.role}`);
         }
 
-        batch.currentOwner = recipientId;
+        batch.pendingOwner = recipientId;
+        // Generate a 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        batch.transferOtp = otp;
+
+        const updatedBatch = await batch.save();
+        res.json(formatSuccess({ ...updatedBatch.toObject(), otp: otp }));
+    } else {
+        res.status(404);
+        throw new Error('Batch not found');
+    }
+});
+
+// Accept a batch transfer (Receiver only)
+const acceptTransfer = asyncHandler(async (req, res) => {
+    const { otp } = req.body;
+    const batch = await HerbBatch.findById(req.params.id);
+
+    if (batch) {
+        // Ensure user is the pending owner
+        if (!batch.pendingOwner || batch.pendingOwner.toString() !== req.user._id.toString()) {
+            res.status(401);
+            throw new Error('Not authorized to accept this transfer');
+        }
+
+        // Verify OTP
+        if (batch.transferOtp !== otp) {
+            res.status(400);
+            throw new Error('Invalid OTP');
+        }
+
+        // Accept the transfer
+        batch.currentOwner = batch.pendingOwner;
+        batch.pendingOwner = undefined;
+        batch.transferOtp = undefined;
 
         // Update status based on recipient role
-        if (recipient.role === 'LAB') {
+        if (req.user.role === 'DISTRIBUTOR') {
+             // Assuming this was assigned from farmer
+             batch.currentStatus = 'IN_TRANSIT_TO_LAB';
+        } else if (req.user.role === 'LAB') {
             batch.currentStatus = 'UNDER_TESTING';
-        } else if (recipient.role === 'RETAILER') {
+        } else if (req.user.role === 'RETAILER') {
             batch.currentStatus = 'IN_TRANSIT_TO_RETAILER';
         }
         
@@ -293,5 +341,6 @@ export {
     getBatchesByFarmer,
     getUnassignedBatches,
     assignToDistributor,
-    transferBatch
+    transferBatch,
+    acceptTransfer
 };

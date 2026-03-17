@@ -203,6 +203,29 @@ const LabPanel = () => {
                               {formatStatus(batch.currentStatus)}
                             </span>
                           </p>
+                          {batch.pendingOwner && batch.pendingOwner._id === userInfo._id && (
+                            <div className="mt-3">
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  const otp = window.prompt(`Enter the 6-digit OTP provided by the sender for batch ${batch.species}:`);
+                                  if (!otp) return;
+                                  try {
+                                    const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
+                                    await axios.put(`/api/batches/${batch._id}/accept-transfer`, { otp }, config);
+                                    const resp = await axios.get('/api/batches/my/owned', config);
+                                    setBatches(resp.data.data);
+                                    alert("Successfully verified OTP and claimed batch!");
+                                  } catch (err) {
+                                    alert("Failed to claim batch: Invalid OTP");
+                                  }
+                                }}
+                                className="bg-green-600 hover:bg-green-700 text-white py-1 px-3 rounded text-sm w-full font-bold"
+                              >
+                                Accept Transfer (OTP)
+                              </button>
+                            </div>
+                          )}
                         </div>
                         <Link 
                           to={`/batch/${batch.batchId}`}

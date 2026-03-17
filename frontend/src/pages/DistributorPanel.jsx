@@ -304,6 +304,9 @@ const DistributorPanel = () => {
   };
 
   const handleClaimBatch = async (batch) => {
+    const otp = window.prompt(`Enter the 6-digit OTP provided by the Farmer for batch ${batch.species}:`);
+    if (!otp) return;
+
     try {
       const config = {
         headers: {
@@ -311,15 +314,17 @@ const DistributorPanel = () => {
           Authorization: `Bearer ${userInfo.token}`,
         },
       };
-      await axios.put(`/api/batches/${batch._id}/assign`, { distributorId: userInfo._id }, config);
+      // Note: using the new accept-transfer endpoint
+      await axios.put(`/api/batches/${batch._id}/accept-transfer`, { otp }, config);
+      
       // Refresh both lists
       const ownedResponse = await axios.get('/api/batches/my/owned', config);
       setBatches(ownedResponse.data.data);
       const unassignedResponse = await axios.get('/api/batches/unassigned', config);
       setUnassignedBatches(unassignedResponse.data.data || []);
-      setTransferSuccess(`Successfully claimed ${batch.species}`);
+      setTransferSuccess(`Successfully verified OTP and claimed ${batch.species}`);
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to claim batch');
+      setError(error.response?.data?.message || 'Failed to claim batch - Invalid OTP');
     }
   };
 

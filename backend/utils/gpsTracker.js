@@ -23,6 +23,10 @@ const formatGpsDataForFrontend = (batch) => {
             latitude: batch.gpsTracking.currentLocation.coordinates[1],
             longitude: batch.gpsTracking.currentLocation.coordinates[0]
         },
+        history: (batch.gpsTracking.history || []).map(h => ({
+            latitude: h.coordinates[1],
+            longitude: h.coordinates[0]
+        })),
         lastUpdated: batch.gpsTracking.lastUpdated,
         species: batch.species,
         owner: batch.currentOwner
@@ -41,20 +45,20 @@ const calculateETA = (currentCoordinates, destinationCoordinates, averageSpeed =
     const R = 6371; // Earth's radius in km
     const dLat = toRad(destinationCoordinates[1] - currentCoordinates[1]);
     const dLon = toRad(destinationCoordinates[0] - currentCoordinates[0]);
-    
-    const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(toRad(currentCoordinates[1])) * Math.cos(toRad(destinationCoordinates[1])) * 
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-    
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(currentCoordinates[1])) * Math.cos(toRad(destinationCoordinates[1])) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c;
-    
+
     // Calculate time in hours
     const timeInHours = distance / averageSpeed;
     const hours = Math.floor(timeInHours);
     const minutes = Math.floor((timeInHours - hours) * 60);
-    
+
     return {
         distance: Math.round(distance * 10) / 10, // Round to 1 decimal place
         eta: {

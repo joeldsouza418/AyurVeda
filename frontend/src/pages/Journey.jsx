@@ -1,6 +1,29 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix generic leaflet icon issue with webpack/vite
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Custom Icons
+const createCustomIcon = (emoji) => L.divIcon({
+  className: 'custom-div-icon',
+  html: `<div style="background-color: white; border: 2px solid #16a34a; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">${emoji}</div>`,
+  iconSize: [30, 30],
+  iconAnchor: [15, 15]
+});
+
+const truckIcon = createCustomIcon('🚚');
+const personIcon = createCustomIcon('👤');
+
 
 const STAGES = [
   { key: 'farm', label: 'Farm', emoji: '🚜', color: 'from-green-500 to-green-600' },
@@ -189,48 +212,91 @@ const Journey = () => {
 
         {/* Journey Visualization */}
         <div className="bg-white/80 backdrop-blur rounded-2xl shadow p-8 mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">Journey Visualization</h2>
-          <div className="relative">
-            <svg viewBox="0 0 1000 160" className="w-full h-40">
-              <defs>
-                <linearGradient id="progress" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#22c55e" />
-                  <stop offset="100%" stopColor="#16a34a" />
-                </linearGradient>
-              </defs>
-              {/* Base path */}
-              <path d="M40 120 C 220 20, 380 20, 500 120 S 780 220, 960 120" stroke="#e5e7eb" strokeWidth="10" fill="none" />
-              {/* Progress path */}
-              <clipPath id="clip">
-                <path d={`M40 120 C 220 20, 380 20, 500 120 S 780 220, 960 120`} />
-              </clipPath>
-              <rect x="0" y="0" width={`${(currentIndex/(STAGES.length-1))*1000}`} height="200" fill="url(#progress)" clipPath="url(#clip)" />
-
-              {/* Nodes */}
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">Live Track & Trace</h2>
+          <div className="relative h-[400px] w-full rounded-xl overflow-hidden border-2 border-green-100 shadow-inner mb-6">
+            <MapContainer 
+              center={[20.5937, 78.9629]} 
+              zoom={5} 
+              style={{ height: '100%', width: '100%' }}
+              zoomControl={false}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              />
+              
+              {/* Plot points from the actual batch stages */}
               {STAGES.map((s, idx) => {
-                const x = 40 + (idx*(920/(STAGES.length-1)));
-                const completed = idx < currentIndex;
-                const current = idx === currentIndex;
+                if(idx > currentIndex) return null;
+                
+                // Get approximate coordinates depending on stage
+                let coords = null;
+                let title = s.label;
+                let userRef = "";
+                let TheIcon = personIcon;
+                
+                if (s.key === 'farm' && batch.stages.farm) {
+                  coords = [batch.stages.farm.gps.lat, batch.stages.farm.gps.lng];
+                  userRef = batch.stages.farm.farmerName;
+                  TheIcon = createCustomIcon('👨🏽‍🌾');
+                } else if (s.key === 'collection' && batch.stages.collection) {
+                  coords = [batch.stages.farm?.gps.lat + 0.5, batch.stages.farm?.gps.lng + 0.5]; // mock collection point near farm
+                  userRef = batch.stages.collection.collectorName;
+                  TheIcon = truckIcon;
+                } else if (s.key === 'testing' && batch.stages.testing) {
+                  coords = s.key === 'testing' && batch.batchId.startsWith('NEEM') ? [23.0225, 72.5714] : [19.2183, 72.9781]; // rough coordinates for Ahmedabad/Thane
+                  userRef = batch.stages.testing.labName;
+                  TheIcon = createCustomIcon('🧪');
+                } else if (s.key === 'distribution' && batch.stages.distribution) {
+                  coords = [18.5204, 73.8567]; // rough coordinates for moving
+                  userRef = batch.stages.distribution.distributorName;
+                  TheIcon = truckIcon;
+                } else if (s.key === 'retail' && batch.stages.retail) {
+                  coords = [17.4065, 78.4772]; // Retailer location
+                  userRef = batch.stages.retail.retailer;
+                  TheIcon = createCustomIcon('🏬');
+                }
+
+                if (!coords) return null;
+
                 return (
-                  <g key={s.key} transform={`translate(${x}, 120)`}>
-                    <circle r="18" fill={completed ? '#22c55e' : current ? '#bbf7d0' : '#e5e7eb'} stroke={current ? '#16a34a' : 'transparent'} strokeWidth="3" />
-                    {completed ? (
-                      <text textAnchor="middle" y="6" fill="#ffffff" fontSize="14">✓</text>
-                    ) : null}
-                  </g>
+                  <Marker key={s.key} position={coords} icon={TheIcon}>
+                    <Popup>
+                      <strong>{title}</strong><br/>
+                      {userRef}
+                    </Popup>
+                  </Marker>
                 );
               })}
-            </svg>
-            <div className="grid grid-cols-5 text-sm text-center text-gray-700">
-              {STAGES.map((s, idx) => (
-                <div key={s.key} className={`flex flex-col items-center ${idx===currentIndex ? 'text-green-700 font-semibold' : ''}`}>
-                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${s.color} text-white flex items-center justify-center shadow-md mb-1`}>
-                    <span>{s.emoji}</span>
-                  </div>
-                  {s.label}
+              
+              {/* Draw path */}
+              <Polyline 
+                positions={
+                  STAGES.map((s, idx) => {
+                    if (idx > currentIndex) return null;
+                    if (s.key === 'farm') return batch.stages.farm ? [batch.stages.farm.gps.lat, batch.stages.farm.gps.lng] : null;
+                    if (s.key === 'collection') return batch.stages.farm ? [batch.stages.farm.gps.lat + 0.5, batch.stages.farm.gps.lng + 0.5] : null;
+                    if (s.key === 'testing') return batch.batchId.startsWith('NEEM') ? [23.0225, 72.5714] : [19.2183, 72.9781];
+                    if (s.key === 'distribution') return [18.5204, 73.8567];
+                    if (s.key === 'retail') return [17.4065, 78.4772];
+                    return null;
+                  }).filter(Boolean)
+                } 
+                color="#16a34a" 
+                weight={3} 
+                dashArray="10, 10" 
+              />
+            </MapContainer>
+          </div>
+          <div className="grid grid-cols-5 text-sm text-center text-gray-700 mt-4">
+            {STAGES.map((s, idx) => (
+              <div key={s.key} className={`flex flex-col items-center ${idx===currentIndex ? 'text-green-700 font-semibold' : ''} ${idx>currentIndex ? 'opacity-40' : ''}`}>
+                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${s.color} text-white flex items-center justify-center shadow-md mb-1`}>
+                  <span>{s.emoji}</span>
                 </div>
-              ))}
-            </div>
+                {s.label}
+              </div>
+            ))}
           </div>
         </div>
 
