@@ -9,10 +9,11 @@ import {
     getUnassignedBatches,
     assignToDistributor,
     transferBatch,
-    acceptTransfer
+    acceptTransfer,
+    deleteBatch
 } from '../controllers/batchController.js';
 import { protect, admin } from '../middlewares/authMiddleware.js';
-import { farmer, distributor, lab, retailer, supplyChainParticipant } from '../middlewares/roleMiddleware.js';
+import { farmer, distributor, supplyChainParticipant } from '../middlewares/roleMiddleware.js';
 import upload from '../utils/fileUpload.js';
 
 const router = express.Router();
@@ -28,7 +29,8 @@ router.route('/')
 router.put('/:batchId/add-event', protect, supplyChainParticipant, upload.single('image'), addBatchEvent);
 router.put('/:id/assign', protect, farmer, assignToDistributor);
 router.put('/:id/transfer', protect, supplyChainParticipant, transferBatch);
-router.put('/:id/accept-transfer', protect, supplyChainParticipant, acceptTransfer);
+router.put('/:id/accept-transfer', protect, acceptTransfer);
+router.delete('/:id', protect, deleteBatch);
 
 // User-specific batch routes
 router.get('/my/owned', protect, getBatchesByOwner);

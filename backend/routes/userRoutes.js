@@ -22,6 +22,6 @@ router.route('/').get(protect, admin, getUsers);
 router.route('/:id').delete(protect, admin, deleteUser);
 router.get('/distributors', protect, farmer, getDistributors);
 router.get('/labs', protect, distributor, getLabs);
-router.get('/retailers', protect, [distributor, lab], getRetailers);
+router.get('/retailers', protect, getRetailers);
 
 export default router;
