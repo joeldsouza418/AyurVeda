@@ -134,7 +134,7 @@ const Register = () => {
             🍃
           </div>
         </div>
-        <h2 className="text-2xl font-bold text-center text-green-700 mb-6">Register for AyurTrace</h2>
+        <h2 className="text-2xl font-bold text-center text-green-700 mb-6">Register for TraceX</h2>
         
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
