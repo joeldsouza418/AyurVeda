@@ -45,9 +45,9 @@ const LandingPage = () => {
               <div className="bg-white rounded-[34px] p-4 shadow-xl border border-gray-100 aspect-[9/16] flex flex-col">
                 <div className="h-2.5 mb-2.5"></div>
                 <div className="flex-1 rounded-2xl bg-gradient-to-b from-white to-green-50 border border-gray-100 p-4 overflow-hidden relative">
-                  <div className="font-bold text-green-800 mb-2">AyurTrace</div>
+                  <div className="font-bold text-green-800 mb-2">TraceX</div>
                   <div className="h-[44%] mt-2.5 rounded-lg border border-green-200 bg-white flex items-center justify-center">
-                    <img src="/qr2.png" alt="AyurTrace QR" className="max-h-full max-w-full object-contain p-3" />
+                    <img src="/qr2.png" alt="TraceX QR" className="max-h-full max-w-full object-contain p-3" />
                   </div>
                   <div className="absolute bottom-3 left-3 right-3 bg-white border border-green-50 rounded-xl p-3 flex justify-between items-center shadow-md">
                     <div>Target Achieved</div>
@@ -133,7 +133,7 @@ const LandingPage = () => {
         {/* Features section */}
         <section className="py-10 bg-white mt-6">
           <div className="max-w-[1200px] mx-auto px-6">
-            <h2 className="text-center text-3xl font-extrabold text-green-800 mb-2">Why Choose AyurTrace?</h2>
+            <h2 className="text-center text-3xl font-extrabold text-green-800 mb-2">Why Choose TraceX?</h2>
             <p className="text-center text-gray-600 text-lg mb-6">Transparent, secure, and efficient herbal supply chain management</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
               <div className="bg-green-50 p-5 rounded-xl text-center border border-green-200 font-bold">
@@ -164,7 +164,7 @@ const LandingPage = () => {
       {/* Footer section */}
       <footer className="bg-green-800 text-white text-center py-5 mt-9 font-bold">
         <div className="max-w-[1200px] mx-auto px-6">
-          <p>© 2025 AyurTrace. All rights reserved. | Making herbal supply chains transparent and trustworthy.</p>
+          <p>© 2025 TraceX. All rights reserved. | Making herbal supply chains transparent and trustworthy.</p>
         </div>
       </footer>
     </div>

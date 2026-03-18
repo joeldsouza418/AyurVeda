@@ -35,7 +35,7 @@ const Navbar = ({ userInfo }) => {
           <div className="w-11 h-11 bg-green-700 rounded-full flex items-center justify-center text-2xl text-white">
             🌿
           </div>
-          <span className="text-2xl font-bold text-green-900">AyurTrace</span>
+          <span className="text-2xl font-bold text-green-900">TraceX</span>
         </Link>
         <div className="flex items-center gap-6">
           {userInfo ? (
