@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import MapHero from '../components/MapHero';
 
 const LandingPage = () => {
-  const [showButtons, setShowButtons] = useState(false);
+  const showButtons = true;
 
   return (
     <div className=" min-h-screen font-sans text-[#0f1720] font-bold">
@@ -12,12 +10,7 @@ const LandingPage = () => {
       <main>
         {/* Hero section with Video above and content below */}
         <section className="relative pb-10 overflow-hidden">
-          {/* Full-bleed Video */}
-          <div className="w-full h-[40vh] md:h-[60vh]">
-            <MapHero onAnimationComplete={() => setShowButtons(true)} />
-          </div>
-
-          {/* Content under the video, constrained */}
+          {/* Hero content */}
           <div className="max-w-[1200px] mx-auto px-6">
             <div className="mt-8 grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-10 items-center">
               <div>
